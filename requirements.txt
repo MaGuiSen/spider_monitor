@@ -1,0 +1,2 @@
+peewee # pip install peewee
+web  #使用pip install web.py 安装

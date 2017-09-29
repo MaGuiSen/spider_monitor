@@ -1,0 +1,171 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数据监控</title>
+    <script src="../js/echarts.min.js"></script>
+    <script type="text/javascript" src="../js/jqeury.min.js"></script>
+    <style>
+        .btn{
+           padding: 4px 10px;
+           cursor: pointer;
+           background-color:#2e82ff;
+           border:1px solid #2e82ff;
+           border-radius: 4px;
+           margin-left:10px;
+           color:white;
+        }
+    </style>
+    <script type="text/javascript">
+        Date.prototype.Format = function (fmt) { //author: meizz
+            var o = {
+                "M+": this.getMonth() + 1, //月份
+                "d+": this.getDate(), //日
+                "h+": this.getHours(), //小时
+                "m+": this.getMinutes(), //分
+                "s+": this.getSeconds(), //秒
+                "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+                "S": this.getMilliseconds() //毫秒
+            };
+            if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+            for (var k in o)
+                if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            return fmt;
+        }
+
+        var currDayBefore = 0;
+        var requesting = false;
+        function requestTotal(){
+            if(requesting){
+                return;
+            }
+            console.warn('2分钟请求一次，当前时间：' + new Date().Format("yyyy-MM-dd hh:mm:ss"));
+            showLoading(true);
+            requesting = true;
+            $.ajax({
+                type: "GET",
+                url: "/monitor?dayBefore="+currDayBefore,
+                success: function(data){
+                    requesting = false;
+                    showLoading(false);
+                    start(JSON.parse(data));
+                },
+                error:function(){
+                    requesting = false;
+                    showLoading(false);
+                }
+            });
+        }
+        function start(dataList)
+        {
+             var option = {
+                title: {
+                    text: '抓取数量',
+                    textStyle: {fontWeight: 'normal'}
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                        type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                calculable: true,
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: [],
+                        axisLabel:{
+                            interval:0,
+                            rotate:25
+                        },
+                        axisTick: {
+                            alignWithLabel: true
+                        }
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value'
+                    }
+                ],
+                color: ['rgb(50, 172, 222)'],
+                series: [
+                {
+                    name: '数量',
+                    type: 'bar',
+                    barWidth: '60%',
+                    data: []
+                }
+                ]
+            };
+            dataList = dataList || [];
+            var names = [];
+            var values = [];
+            for(var index=0;index<dataList.length;index++){
+                var item = dataList[index];
+                names.push(item.tableNameShow || '');
+                values.push(item.total+'');
+            }
+            option.xAxis[0].data = names;
+            option.series[0].data = values;
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('main'));
+            myChart.setOption(option);
+        }
+
+        function dayBefore() {
+            currDayBefore -= 1;
+            refreshDate();
+        }
+
+
+        function dayAfter() {
+            currDayBefore += 1;
+            refreshDate();
+        }
+
+
+        function dayToday() {
+            currDayBefore = 0;
+            refreshDate();
+        }
+
+        function refreshDate() {
+            var todayDay = new Date();
+            var currDate = new Date(todayDay.setDate(todayDay.getDate()+currDayBefore));
+            var dayTime = document.getElementById('dayTime')
+            dayTime.innerHTML = '日期：' + currDate.Format("yyyy-MM-dd");
+            requestTotal();
+        }
+
+        function showLoading(isShow){
+            var loading = document.getElementById('loading');
+            loading.innerHTML = isShow ? '加载中...' : '更新时间：'+new Date().Format("yyyy-MM-dd hh:mm:ss");
+        }
+
+        window.onload=function () {
+            requestTotal();
+            dayToday();
+            setInterval(function () {
+                requestTotal();
+            }, 60*1000*2)
+        }
+    </script>
+</head>
+<body>
+<div id="dayTime" style="display: flex;justify-content: center;align-items: center"></div>
+<div id="loading" style="display: flex;justify-content: center;align-items: center; height: 30px;color:grey"></div>
+<!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
+<div id="main" style="margin:0 auto;width: 600px;height:400px;"></div>
+<div style="margin-top:10px;display: flex;flex-direction: row;justify-content: center;align-items: center">
+    <div class="btn" onclick="dayBefore()">前一天</div>
+    <div class="btn" onclick="dayToday()">今天</div>
+    <div class="btn" onclick="dayAfter()">后一天</div>
+</div>
+</body>
+</html>
