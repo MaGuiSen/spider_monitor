@@ -50,7 +50,60 @@ Tables = {
 }
 
 
-class TotalDao(object):
+class SpaceCatchTotalDao(object):
+    def getAllTotal(self, startTime, endTime):
+        result = []
+        for tableName in Tables:
+            total = self.getTotalByTable(Tables[tableName], startTime, endTime)
+            tableNameShow = self.getTableNameShow(tableName)
+            result.append({
+                "total": total,
+                "tableNameShow": tableNameShow,
+                "table": tableName
+            })
+        result.append({
+            "total": self.getWXSourceTotal(),
+            "tableNameShow": u"微信源",
+            "table": "weixin_source"
+        })
+        return result
+
+    def getTotalByTable(self, table, startTime, endTime):
+        try:
+            startTime = datetime.datetime.strptime(startTime, "%Y-%m-%d %H:%M:%S")
+            endTime = datetime.datetime.strptime(endTime, "%Y-%m-%d %H:%M:%S")
+            return table.select().where(table.update_time >= startTime, table.update_time <= endTime).count()
+        except Exception as e:
+            print str(e)
+            return 0
+
+    def getTableNameShow(self, tableName):
+        tableNames = {
+            'diyicaijing_detail': u'第一财经',
+            'fenghuang_detail': u'凤凰',
+            'hexun_detail': u'和讯',
+            'jiemian_detail': u'界面',
+            'jingrongjie_detail': u'金融界',
+            'kuaixun_detail': u'快讯',
+            'sina_detail': u'新浪',
+            'sohu_detail': u'搜狐',
+            'taoguba_detail': u'淘股吧',
+            'tengxun_detail': u'腾讯',
+            'wangyi_detail': u'网易',
+            'weixin_detail': u'微信',
+            'xueqiu_detail': u'雪球'
+        }
+        return tableNames[tableName]
+
+    def getWXSourceTotal(self):
+        try:
+            return WeixinSource.select().where(WeixinSource.is_enable == 1, WeixinSource.wx_url != '').count()
+        except Exception as e:
+            print str(e)
+            return 0
+
+
+class DayNumTotalDao(object):
     def getAllTotal(self, dayBefore=0):
         result = []
         for tableName in Tables:
@@ -103,6 +156,8 @@ class TotalDao(object):
         except Exception as e:
             print str(e)
             return 0
+
+
 
 if __name__== '__main__':
     result = TotalDao().getTotalByTable(WeixinDetail, dayBefore=0)

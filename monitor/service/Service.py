@@ -3,16 +3,17 @@
 import json
 
 import web
-from trivest_data.dal.DataMonitorDao import TotalDao
+from trivest_data.dal.DataMonitorDao import DayNumTotalDao, SpaceCatchTotalDao
 
 urls = (
-    '/monitor', 'monitor',
+    '/monitor/dayNum', 'dayNum',
+    '/monitor/spaceCatchNum', 'spaceCatchNum',
     '/(html|js|css|images)/(.*)', 'static',
 )
 app = web.application(urls, globals())
 
 
-class monitor:
+class dayNum:
     def GET(self):
         web.header("Access-Control-Allow-Origin", "*")
         # 获取各表的数量
@@ -23,7 +24,23 @@ class monitor:
         except Exception as e:
             print str(e)
             dayBefore = 0
-        result = TotalDao().getAllTotal(dayBefore=dayBefore)
+        result = DayNumTotalDao().getAllTotal(dayBefore=dayBefore)
+        return json.dumps(result)
+
+    def POST(self, name):
+        web.header("Access-Control-Allow-Origin", "*")
+        print web.input()
+        return "POST hello world"
+
+
+class spaceCatchNum:
+    def GET(self):
+        web.header("Access-Control-Allow-Origin", "*")
+        # 获取各表的数量
+        params = web.input()
+        startTime = params.startTime
+        endTime = params.endTime
+        result = SpaceCatchTotalDao().getAllTotal(startTime, endTime)
         return json.dumps(result)
 
     def POST(self, name):

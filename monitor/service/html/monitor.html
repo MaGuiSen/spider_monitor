@@ -34,7 +34,7 @@
 
         var currDayBefore = 0;
         var requesting = false;
-        function requestTotal(){
+        function requestDayTotal(){
             if(requesting){
                 return;
             }
@@ -43,11 +43,11 @@
             requesting = true;
             $.ajax({
                 type: "GET",
-                url: "/monitor?dayBefore="+currDayBefore,
+                url: "/monitor/dayNum?dayBefore="+currDayBefore,
                 success: function(data){
                     requesting = false;
                     showLoading(false);
-                    start(JSON.parse(data));
+                    showDayNumChart(JSON.parse(data));
                 },
                 error:function(){
                     requesting = false;
@@ -55,11 +55,11 @@
                 }
             });
         }
-        function start(dataList)
+        function showDayNumChart(dataList)
         {
              var option = {
                 title: {
-                    text: '抓取数量',
+                    text: '当日新闻数量',
                     textStyle: {fontWeight: 'normal'}
                 },
                 tooltip: {
@@ -118,6 +118,91 @@
             myChart.setOption(option);
         }
 
+        var spaceCatchRequesting = false;
+        function requestSpaceCatchTotal(startTime, endTime){
+            if(spaceCatchRequesting){
+                return;
+            }
+            console.warn('5分钟请求一次spaceCatchNum，当前时间：' + new Date().Format("yyyy-MM-dd hh:mm:ss"));
+            showSpaceCatchLoading(true);
+            spaceCatchRequesting = true;
+            $.ajax({
+                type: "GET",
+                url: "/monitor/spaceCatchNum?startTime="+startTime+"&endTime="+endTime,
+                success: function(data){
+                    spaceCatchRequesting = false;
+                    showSpaceCatchLoading(false);
+                    showSpaceCatchNumChart(JSON.parse(data));
+                },
+                error:function(){
+                    spaceCatchRequesting = false;
+                    showSpaceCatchLoading(false);
+                }
+            });
+        }
+        function showSpaceCatchNumChart(dataList)
+        {
+             var option = {
+                title: {
+                    text: '时间间隔内抓取新闻数量',
+                    textStyle: {fontWeight: 'normal'}
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                        type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                calculable: true,
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: [],
+                        axisLabel:{
+                            interval:0,
+                            rotate:25
+                        },
+                        axisTick: {
+                            alignWithLabel: true
+                        }
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value'
+                    }
+                ],
+                color: ['rgb(50, 172, 222)'],
+                series: [
+                {
+                    name: '数量',
+                    type: 'bar',
+                    barWidth: '60%',
+                    data: []
+                }
+                ]
+            };
+            dataList = dataList || [];
+            var names = [];
+            var values = [];
+            for(var index=0;index<dataList.length;index++){
+                var item = dataList[index];
+                names.push(item.tableNameShow || '');
+                values.push(item.total+'');
+            }
+            option.xAxis[0].data = names;
+            option.series[0].data = values;
+            // 基于准备好的dom，初始化echarts实例
+            var myChart = echarts.init(document.getElementById('spaceCatchMain'));
+            myChart.setOption(option);
+        }
+
         function dayBefore() {
             currDayBefore -= 1;
             refreshDate();
@@ -140,7 +225,7 @@
             var currDate = new Date(todayDay.setDate(todayDay.getDate()+currDayBefore));
             var dayTime = document.getElementById('dayTime')
             dayTime.innerHTML = '日期：' + currDate.Format("yyyy-MM-dd");
-            requestTotal();
+            requestDayTotal();
         }
 
         function showLoading(isShow){
@@ -148,12 +233,46 @@
             loading.innerHTML = isShow ? '加载中...' : '更新时间：'+new Date().Format("yyyy-MM-dd hh:mm:ss");
         }
 
+        function showSpaceCatchLoading(isShow){
+            var loading = document.getElementById('spaceLoading');
+            loading.innerHTML = isShow ? '加载中...' : '更新时间：'+new Date().Format("yyyy-MM-dd hh:mm:ss");
+        }
+
+        function searchSpaceCatch(){
+            // 得到两个时间
+            var startTime = document.getElementById('startTime').value;
+            var endTime = document.getElementById('endTime').value;
+            if(!startTime || !endTime){
+                alert('请输入完整的时间');
+                return;
+            }
+            startTime = startTime.replace('T', ' ');
+            endTime = endTime.replace('T', ' ');
+            var timeSpace = document.getElementById('timeSpace');
+            timeSpace.innerHTML = startTime + ' 至 ' + endTime;
+
+            requestSpaceCatchTotal(startTime + ':00', endTime + ':00');
+        }
+
+        function newSpaceCatch(){
+            var startTime = document.getElementById('startTime');
+            var endTime = document.getElementById('endTime');
+            var currTime = new Date();
+            endTime.value = currTime.Format("yyyy-MM-ddThh:mm");
+            startTime.value = new Date(currTime.setMinutes(currTime.getMinutes()-30)).Format("yyyy-MM-ddThh:mm");
+            searchSpaceCatch();
+        }
+
         window.onload=function () {
-            requestTotal();
+            newSpaceCatch();
+            refreshDate();
             dayToday();
             setInterval(function () {
-                requestTotal();
+                refreshDate();
             }, 60*1000*2)
+            setInterval(function () {
+                searchSpaceCatch();
+            }, 60*1000*5)
         }
     </script>
 </head>
@@ -161,11 +280,23 @@
 <div id="dayTime" style="display: flex;justify-content: center;align-items: center"></div>
 <div id="loading" style="display: flex;justify-content: center;align-items: center; height: 30px;color:grey"></div>
 <!-- 为 ECharts 准备一个具备大小（宽高）的 DOM -->
-<div id="main" style="margin:0 auto;width: 600px;height:400px;"></div>
+<div id="main" style="margin:0 auto;width: 600px;height:300px;"></div>
 <div style="margin-top:10px;display: flex;flex-direction: row;justify-content: center;align-items: center">
     <div class="btn" onclick="dayBefore()">前一天</div>
     <div class="btn" onclick="dayToday()">今天</div>
     <div class="btn" onclick="dayAfter()">后一天</div>
+</div>
+
+
+<div style="height:1px;background:gray;margin-top:10px"></div>
+
+<div id="timeSpace" style="display: flex;justify-content: center;align-items: center;margin-top:10px"></div>
+<div id="spaceLoading" style="display: flex;justify-content: center;align-items: center; height: 30px;color:grey"></div>
+<div id="spaceCatchMain" style="margin:0 auto;width: 600px;height:300px;"></div>
+<div style="display: flex;justify-content: center;align-items: center;margin:10px 0px 80px 0;">
+    开始时间：<input id="startTime" type='datetime-local'/>&nbsp;结束时间：<input id="endTime" type='datetime-local'/>
+    <div class="btn" onclick="searchSpaceCatch()">搜索</div>
+    <div class="btn" onclick="newSpaceCatch()">最新抓取</div>
 </div>
 </body>
 </html>
