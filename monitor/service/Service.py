@@ -3,12 +3,14 @@
 import json
 
 import web
-from trivest_data.dal.DataMonitorDao import DayNumTotalDao, SpaceCatchTotalDao
+from trivest_data.dal.DataMonitorDao import DayNumTotalDao, SpaceCatchTotalDao, SpiderMonitor
 
 urls = (
     '/monitor/dayNum', 'dayNum',
     '/monitor/spaceCatchNum', 'spaceCatchNum',
     '/(html|js|css|images)/(.*)', 'static',
+    '/monitor/getAllProjectIdentify', 'ProjectIdentify',
+    '/monitor/getProjectSpider', 'ProjectSpider'
 )
 app = web.application(urls, globals())
 
@@ -42,6 +44,54 @@ class spaceCatchNum:
         endTime = params.endTime
         result = SpaceCatchTotalDao().getAllTotal(startTime, endTime)
         return json.dumps(result)
+
+    def POST(self, name):
+        web.header("Access-Control-Allow-Origin", "*")
+        print web.input()
+        return "POST hello world"
+
+
+class ProjectIdentify:
+    def GET(self):
+        web.header("Access-Control-Allow-Origin", "*")
+        # 获取各表的数量
+        params = web.input()
+        results = SpiderMonitor().getAllProjectIdentify()
+        newResults = []
+        for result in results:
+            newResults.append({
+                'project_identify': result.project_identify
+            })
+        return json.dumps(newResults)
+
+    def POST(self, name):
+        web.header("Access-Control-Allow-Origin", "*")
+        print web.input()
+        return "POST hello world"
+
+
+class ProjectSpider:
+    def GET(self):
+        web.header("Access-Control-Allow-Origin", "*")
+        # 获取各表的数量
+        params = web.input()
+        projectIdentify = params.projectIdentify
+        results = SpiderMonitor().getProjectSpider(projectIdentify)
+        newResults = []
+        for result in results:
+            newResults.append({
+                'heart_beat_time': result.heart_beat_time,
+                'heart_beat_remark':  result.heart_beat_remark,
+                'start_spider_time': result.start_spider_time,
+                'close_spider_time': result.close_spider_time,
+                'table_name': result.table_name,
+                'spider_name': result.spider_name,
+                'spider_name_zh': result.spider_name_zh,
+                'table_name_zh': result.table_name_zh,
+                'project_identify': result.project_identify,
+                'item_type': result.item_type,
+            })
+        return json.dumps(newResults)
 
     def POST(self, name):
         web.header("Access-Control-Allow-Origin", "*")

@@ -1,58 +1,13 @@
 # -*- coding: utf-8 -*-
+
+from trivest_data.dal.trivest_spider import getTableByName
 from util import EncryptUtil
-from trivest_spider import DiyicaijingDetail, DiyicaijingDetailTest
-from trivest_spider import FenghuangDetail, FenghuangDetailTest
-from trivest_spider import HexunDetail, HexunDetailTest
-from trivest_spider import JiemianDetail, JiemianDetailTest
-from trivest_spider import JingrongjieDetail, JingrongjieDetailTest
-from trivest_spider import KuaixunDetail, KuaixunDetailTest
-from trivest_spider import SinaDetail, SinaDetailTest
-from trivest_spider import SohuDetail, SohuDetailTest
-from trivest_spider import TaogubaDetail, TaogubaDetailTest
-from trivest_spider import TengxunDetail, TengxunDetailTest
-from trivest_spider import WangyiDetail, WangyiDetailTest
-from trivest_spider import WeixinDetail, WeixinDetailTest
-from trivest_spider import WeixinSource, WeixinSourceTest
-from trivest_spider import XueqiuDetail, XueqiuDetailTest
-
-# TODO..如果是测试，就启用下方的
-Tables = {
-    # 'diyicaijing_detail': DiyicaijingDetail,
-    # 'fenghuang_detail': FenghuangDetail,
-    # 'hexun_detail': HexunDetail,
-    # 'jiemian_detail': JiemianDetail,
-    # 'jingrongjie_detail': JingrongjieDetail,
-    # 'kuaixun_detail': KuaixunDetail,
-    # 'sina_detail': SinaDetail,
-    # 'sohu_detail': SohuDetail,
-    # 'taoguba_detail': TaogubaDetail,
-    # 'tengxun_detail': TengxunDetail,
-    # 'wangyi_detail': WangyiDetail,
-    # 'weixin_detail': WeixinDetail,
-    # 'weixin_source': WeixinSource,
-    # 'xueqiu_detail': XueqiuDetail,
-
-    'diyicaijing_detail': DiyicaijingDetailTest,
-    'fenghuang_detail': FenghuangDetailTest,
-    'hexun_detail': HexunDetailTest,
-    'jiemian_detail': JiemianDetailTest,
-    'jingrongjie_detail': JingrongjieDetailTest,
-    'kuaixun_detail': KuaixunDetailTest,
-    'sina_detail': SinaDetailTest,
-    'sohu_detail': SohuDetailTest,
-    'taoguba_detail': TaogubaDetailTest,
-    'tengxun_detail': TengxunDetailTest,
-    'wangyi_detail': WangyiDetailTest,
-    'weixin_detail': WeixinDetailTest,
-    'weixin_source': WeixinSourceTest,
-    'xueqiu_detail': XueqiuDetailTest,
-}
 
 
 class CheckDao(object):
     def __init__(self, tableName):
         self.hashList = []  # 代表此次已经存在的hash,防止同一时间得到相同文章进行抓取
-        self.Table = Tables[tableName]  # TODO..del 删除test
+        self.Table = getTableByName(tableName)  # TODO..del 删除test
 
     def resetHashList(self):
         # 每次重新抓取的时候清除

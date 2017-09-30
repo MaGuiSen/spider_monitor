@@ -2,59 +2,31 @@
 import time
 import datetime
 
-from trivest_spider import DataMonitor, fn
-from trivest_spider import DiyicaijingDetail, DiyicaijingDetailTest
-from trivest_spider import FenghuangDetail, FenghuangDetailTest
-from trivest_spider import HexunDetail, HexunDetailTest
-from trivest_spider import JiemianDetail, JiemianDetailTest
-from trivest_spider import JingrongjieDetail, JingrongjieDetailTest
-from trivest_spider import KuaixunDetail, KuaixunDetailTest
-from trivest_spider import SinaDetail, SinaDetailTest
-from trivest_spider import SohuDetail, SohuDetailTest
-from trivest_spider import TaogubaDetail, TaogubaDetailTest
-from trivest_spider import TengxunDetail, TengxunDetailTest
-from trivest_spider import WangyiDetail, WangyiDetailTest
-from trivest_spider import WeixinDetail, WeixinDetailTest
-from trivest_spider import WeixinSource, WeixinSourceTest
-from trivest_spider import XueqiuDetail, XueqiuDetailTest
+from trivest_spider import getTableByName, fn
 
-# TODO..如果是测试，就启用下方的
-Tables = {
-    'diyicaijing_detail': DiyicaijingDetail,
-    'fenghuang_detail': FenghuangDetail,
-    'hexun_detail': HexunDetail,
-    'jiemian_detail': JiemianDetail,
-    'jingrongjie_detail': JingrongjieDetail,
-    'kuaixun_detail': KuaixunDetail,
-    'sina_detail': SinaDetail,
-    'sohu_detail': SohuDetail,
-    'taoguba_detail': TaogubaDetail,
-    'tengxun_detail': TengxunDetail,
-    'wangyi_detail': WangyiDetail,
-    'weixin_detail': WeixinDetail,
-    'xueqiu_detail': XueqiuDetail,
-
-    # 'diyicaijing_detail': DiyicaijingDetailTest,
-    # 'fenghuang_detail': FenghuangDetailTest,
-    # 'hexun_detail': HexunDetailTest,
-    # 'jiemian_detail': JiemianDetailTest,
-    # 'jingrongjie_detail': JingrongjieDetailTest,
-    # 'kuaixun_detail': KuaixunDetailTest,
-    # 'sina_detail': SinaDetailTest,
-    # 'sohu_detail': SohuDetailTest,
-    # 'taoguba_detail': TaogubaDetailTest,
-    # 'tengxun_detail': TengxunDetailTest,
-    # 'wangyi_detail': WangyiDetailTest,
-    # 'weixin_detail': WeixinDetailTest,
-    # 'xueqiu_detail': XueqiuDetailTest,
-}
+tablesName = [
+    'diyicaijing_detail',
+    'fenghuang_detail',
+    'hexun_detail',
+    'jiemian_detail',
+    'jingrongjie_detail',
+    'kuaixun_detail',
+    'sina_detail',
+    'sohu_detail',
+    'taoguba_detail',
+    'tengxun_detail',
+    'wangyi_detail',
+    'weixin_detail',
+    'xueqiu_detail',
+]
 
 
 class SpaceCatchTotalDao(object):
     def getAllTotal(self, startTime, endTime):
         result = []
-        for tableName in Tables:
-            total = self.getTotalByTable(Tables[tableName], startTime, endTime)
+        for tableName in tablesName:
+            table = getTableByName(tableName)
+            total = self.getTotalByTable(table, startTime, endTime)
             tableNameShow = self.getTableNameShow(tableName)
             result.append({
                 "total": total,
@@ -97,7 +69,8 @@ class SpaceCatchTotalDao(object):
 
     def getWXSourceTotal(self):
         try:
-            return WeixinSource.select().where(WeixinSource.is_enable == 1, WeixinSource.wx_url != '').count()
+            table = getTableByName('weixin_source')
+            return table.select().where(table.is_enable == 1, table.wx_url != '').count()
         except Exception as e:
             print str(e)
             return 0
@@ -106,8 +79,9 @@ class SpaceCatchTotalDao(object):
 class DayNumTotalDao(object):
     def getAllTotal(self, dayBefore=0):
         result = []
-        for tableName in Tables:
-            total = self.getTotalByTable(Tables[tableName], dayBefore)
+        for tableName in tablesName:
+            table = getTableByName(tableName)
+            total = self.getTotalByTable(table, dayBefore)
             tableNameShow = self.getTableNameShow(tableName)
             result.append({
                 "total": total,
@@ -152,41 +126,165 @@ class DayNumTotalDao(object):
 
     def getWXSourceTotal(self):
         try:
-            return WeixinSource.select().where(WeixinSource.is_enable == 1, WeixinSource.wx_url != '').count()
+            table = getTableByName('weixin_source')
+            return table.select().where(table.is_enable == 1, table.wx_url != '').count()
         except Exception as e:
             print str(e)
             return 0
 
 
-
 if __name__== '__main__':
-    result = TotalDao().getTotalByTable(WeixinDetail, dayBefore=0)
-    print result
+    table = getTableByName('spider_monitor')
+    results = table.select(fn.Distinct(table.table_name))
+    for ress in results:
+        print ress
+    pass
 
-class DataMonitorDao(object):
-    def getHeartBeatTime(self, type=''):
+
+class SpiderMonitor(object):
+    def getAllProjectIdentify(self):
+        try:
+            table = getTableByName('spider_monitor')
+            return table.select(fn.Distinct(table.project_identify))
+        except Exception as e:
+            print str(e)
+
+    def getProjectSpider(self, projectIdentify):
+        try:
+            table = getTableByName('spider_monitor')
+            return table.select().where(table.project_identify == projectIdentify
+                                        , table.item_type == 'spider')
+        except Exception as e:
+            print str(e)
+        pass
+
+    def getHeartBeatTime(self, projectIdentify, itemType, spiderName=''):
         """
         得到心跳更新时间
         """
-        if type:
-            return DataMonitor.select()
-        else:
-            return DataMonitor.select().where(DataMonitor.type == type)
+        table = getTableByName('spider_monitor')
+        return table.select().where(table.project_identify == projectIdentify,
+                                    table.spider_name == spiderName,
+                                    table.item_type == itemType)
 
-    def heartBeat(self, type='', info='跳动中', remark='1分钟更新一次'):
-        """
-        更新跳动时间(不存在则添加)
-        """
-        if not type:
-            return
-        results = self.getHeartBeatTime()
-        nowDate = datetime.datetime.now()
-        print '跳一下', nowDate
-        if len(results):
-            for result in results:
-                result.update_time = nowDate
-                result.remark = remark
-                result.info = info
-                result.save()
-        else:
-            DataMonitor.create(info=info, remark=remark, type=type, update_time=nowDate)
+    def projectHeatBeat(self, projectIdentify, heartBeatRemark=''):
+        try:
+            results = self.getHeartBeatTime(projectIdentify, 'project')
+            nowDate = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            if len(results):
+                for result in results:
+                    result.heart_beat_time = nowDate
+                    result.heart_beat_remark = heartBeatRemark
+                    result.save()
+            else:
+                table = getTableByName('spider_monitor')
+                table.create(heart_beat_time=nowDate,
+                             heart_beat_remark=heartBeatRemark,
+                             project_identify=projectIdentify,
+                             item_type='project',
+                             spider_name='')
+        except Exception as e:
+            print str(e)
+
+    def spiderHeatBeat(self, projectIdentify, spiderName, spiderDetail, heartBeatRemark=''):
+        try:
+            # spiderDetail 包含了spider相关的说明，此对象和数据子字段对应
+            results = self.getHeartBeatTime(projectIdentify, 'spider', spiderName=spiderName)
+            nowDate = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            if len(results):
+                for result in results:
+                    result.heart_beat_time = nowDate
+                    result.heart_beat_remark = heartBeatRemark
+                    result.table_name = spiderDetail.get('table_name', '')
+                    result.spider_name = spiderDetail.get('spider_name', '')
+                    result.spider_name_zh = spiderDetail.get('spider_name_zh', '')
+                    result.table_name_zh = spiderDetail.get('table_name_zh', '')
+                    result.save()
+            else:
+                table = getTableByName('spider_monitor')
+                table.create(
+                    heart_beat_time=nowDate,
+                    heart_beat_remark=heartBeatRemark,
+                    project_identify=projectIdentify,
+                    item_type='spider',
+                    **spiderDetail)
+        except Exception as e:
+            print str(e)
+
+    def updateStartSpiderTime(self, projectIdentify, spiderName, spiderDetail):
+        try:
+            results = self.getHeartBeatTime(projectIdentify, 'spider', spiderName=spiderName)
+            nowDate = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            if len(results):
+                for result in results:
+                    result.start_spider_time = nowDate
+                    result.table_name = spiderDetail.get('table_name', '')
+                    result.spider_name = spiderDetail.get('spider_name', '')
+                    result.spider_name_zh = spiderDetail.get('spider_name_zh', '')
+                    result.table_name_zh = spiderDetail.get('table_name_zh', '')
+                    result.save()
+            else:
+                table = getTableByName('spider_monitor')
+                table.create(
+                    start_spider_time=nowDate,
+                    project_identify=projectIdentify,
+                    item_type='spider',
+                    **spiderDetail)
+            pass
+        except Exception as e:
+            print str(e)
+
+    def updateCloseSpiderTime(self, projectIdentify, spiderName, spiderDetail):
+        try:
+            results = self.getHeartBeatTime(projectIdentify, 'spider', spiderName=spiderName)
+            nowDate = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            if len(results):
+                for result in results:
+                    result.close_spider_time = nowDate
+                    result.table_name = spiderDetail.get('table_name', '')
+                    result.spider_name = spiderDetail.get('spider_name', '')
+                    result.spider_name_zh = spiderDetail.get('spider_name_zh', '')
+                    result.table_name_zh = spiderDetail.get('table_name_zh', '')
+                    result.save()
+            else:
+                table = getTableByName('spider_monitor')
+                table.create(
+                    close_spider_time=nowDate,
+                    project_identify=projectIdentify,
+                    item_type='spider',
+                    **spiderDetail)
+            pass
+        except Exception as e:
+            print str(e)
+
+if __name__ == '__main__':
+    SpiderMonitor().projectHeatBeat('11212', heartBeatRemark='10分钟跳一次')
+    SpiderMonitor().projectHeatBeat('21', heartBeatRemark='10分钟跳一次')
+    spiderDetail1 = {
+        'table_name': 'wangyi_detail',
+        'table_name_zh': '网易',
+        'spider_name': 'wangyi_tech_scroll_news',
+        'spider_name_zh': '网易-科技新闻'
+    }
+    SpiderMonitor().spiderHeatBeat('11212', 'wangyi_tech_scroll_news', spiderDetail1, heartBeatRemark='10分钟一次')
+
+    spiderDetail2 = {
+        'table_name': 'weixin_source',
+        'table_name_zh': '微信',
+        'spider_name': 'weixin_source',
+        'spider_name_zh': '微信-科技新闻'
+    }
+    SpiderMonitor().spiderHeatBeat('11212', 'weixin_source', spiderDetail2, heartBeatRemark='半小时一次')
+
+    spiderDetail3 = {
+        'table_name': 'weixin_source',
+        'table_name_zh': '微信',
+        'spider_name': 'weixin_source',
+        'spider_name_zh': '微信'
+    }
+    SpiderMonitor().spiderHeatBeat('22222', 'weixin_source', spiderDetail3, heartBeatRemark='半小时一次')
+
+    SpiderMonitor().updateCloseSpiderTime('22222', 'weixin_source', spiderDetail3)
+    SpiderMonitor().updateStartSpiderTime('22222', 'weixin_source', spiderDetail3)
+    SpiderMonitor().updateCloseSpiderTime('11212', 'weixin_source', spiderDetail3)
+    SpiderMonitor().updateCloseSpiderTime('wwwwwww', 'weixin_source', spiderDetail3)

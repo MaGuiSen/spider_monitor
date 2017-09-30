@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import datetime
 from trivest_spider import ScrapyLog
 import util.loggerutils as loggerUtil
 import logging
@@ -13,7 +12,6 @@ import logging
       belong_to 所属模块
       attach 附加信息
   '''
-
 
 def queryAll():
     return ScrapyLog.select()
