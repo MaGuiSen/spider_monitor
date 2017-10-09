@@ -82,9 +82,10 @@ class SpiderMonitor(BaseModel):
     table_name_zh = CharField(null=True)
     project_identify = CharField(null=True)
     item_type = CharField(null=True)
+    heart_beat_time_space = IntegerField(null=True)
 
     class Meta:
-        db_table = 'spider_monitor'
+        db_table = 'spider_monitor_new'
 
 
 class DataMonitor(BaseModel):

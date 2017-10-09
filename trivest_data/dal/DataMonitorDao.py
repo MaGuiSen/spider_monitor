@@ -158,6 +158,15 @@ class SpiderMonitor(object):
             print str(e)
         pass
 
+    def getProjectHeartBeat(self, projectIdentify):
+        try:
+            table = getTableByName('spider_monitor')
+            return table.select(table.heart_beat_time, table.heart_beat_remark).where(table.project_identify == projectIdentify
+                                        , table.item_type == 'project')
+        except Exception as e:
+            print str(e)
+        pass
+
     def getHeartBeatTime(self, projectIdentify, itemType, spiderName=''):
         """
         得到心跳更新时间

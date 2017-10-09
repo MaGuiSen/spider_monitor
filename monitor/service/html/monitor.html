@@ -13,6 +13,7 @@
            border-radius: 4px;
            margin-left:10px;
            color:white;
+           margin-top: 10px;
         }
     </style>
     <script type="text/javascript">
@@ -223,7 +224,7 @@
         function refreshDate() {
             var todayDay = new Date();
             var currDate = new Date(todayDay.setDate(todayDay.getDate()+currDayBefore));
-            var dayTime = document.getElementById('dayTime')
+            var dayTime = document.getElementById('dayTime');
             dayTime.innerHTML = '日期：' + currDate.Format("yyyy-MM-dd");
             requestDayTotal();
         }
@@ -263,16 +264,130 @@
             searchSpaceCatch();
         }
 
+        var currProjectHeartBeatIdentify = '';
+        function requestHeartBeatBtn(){
+            $.ajax({
+                type: "GET",
+                url: "/monitor/getAllProjectIdentify",
+                success: function(data){
+                    showHeartBeatBtn(JSON.parse(data));
+                },
+                error:function(){
+                }
+            });
+        }
+
+        function showHeartBeatBtn(dataList){
+            var heartBeatBtnLay = document.getElementById('heartBeatBtnLay');
+            dataList = dataList || [];
+            var htmlAll = [];
+            for(var index=0; index< dataList.length; index++){
+                var item = dataList[index];
+                var click = "clickProjectHeartBeatBtn('" + item.project_identify + "')";
+                htmlAll.push('<div class="btn" onclick="' + click + '" title="' + item.project_identify + '">项目'+ (index + 1) +'</div>');
+                if(index == 0){
+                    clickProjectHeartBeatBtn(item.project_identify);
+                }
+            }
+            heartBeatBtnLay.innerHTML = htmlAll.join('')
+
+        }
+
+        function clickProjectHeartBeatBtn(project_identify) {
+            var projectIdentify = document.getElementById('projectIdentify');
+            projectIdentify.innerHTML = project_identify;
+            currProjectHeartBeatIdentify = project_identify;
+            requestProjectHeartBeat(project_identify);
+            requestProjectSpider(project_identify);
+        }
+
+        function requestProjectHeartBeat(projectIdentify){
+            var heartBeatUpdateTime = document.getElementById('heartBeatUpdateTime');
+            heartBeatUpdateTime.innerHTML = '加载中。。';
+            $.ajax({
+                type: "GET",
+                url: "/monitor/getProjectHeartBeat?projectIdentify="+projectIdentify,
+                success: function(data){
+                    heartBeatUpdateTime.innerHTML = new Date().Format("yyyy-MM-dd hh:mm:ss");
+                    showProjectHeartBeat(JSON.parse(data) || []);
+                },
+                error:function(){
+                }
+            });
+        }
+
+        function showProjectHeartBeat(dataList){
+            if(dataList && dataList.length){
+                var item = dataList[0];
+                var projectHeatBeat = document.getElementById('projectHeatBeat');
+                var projectHeatBeatRemark = document.getElementById('projectHeatBeatRemark');
+                projectHeatBeat.innerHTML = item.heart_beat_time;
+                projectHeatBeatRemark.innerHTML = item.heart_beat_remark;
+            }
+        }
+
+        function requestProjectSpider(projectIdentify){
+            $.ajax({
+                type: "GET",
+                url: "/monitor/getProjectSpider?projectIdentify="+projectIdentify,
+                success: function(data){
+                    showProjectSpider(JSON.parse(data));
+                },
+                error:function(){
+                }
+            });
+        }
+
+        function showProjectSpider(dataList) {
+            var projectSpiderLay = document.getElementById('projectSpiderLay');
+            dataList = dataList || [];
+            var htmlAll = [];
+            for(var index=0; index< dataList.length; index++){
+                var item = dataList[index];
+                var labelStyle = 'width: 120px;display: inline-block;color:#363638;font-size:16px';
+                htmlAll.push(
+                    '<div style="width: 600px; margin-top: 10px">'+ (index+1) + '、' + item.spider_name_zh + '<br>'+
+                        '<div style="margin-top: 10px;border: 1px solid gray;border-radius: 4px;padding: 4px;">'+
+                            '<span style="' +labelStyle+ '">爬虫名称：</span>'+ item.spider_name +
+                            '<br>'+
+                            '<span style="' +labelStyle+ '">中文表名：</span>'+ item.table_name_zh +
+                            '<br>'+
+                            '<span style="' +labelStyle+ '">表名：</span>'+ item.table_name +
+                            '<br>'+
+                            '<span style="' +labelStyle+ '">开始爬虫时间：</span>'+ item.start_spider_time +
+                            '<br>'+
+                            '<span style="' +labelStyle+ '">结束爬虫时间：</span>'+ item.close_spider_time +
+                            '<br>'+
+                            '<span style="' +labelStyle+ '">心跳时间：</span>' + item.heart_beat_time +
+                            '<br>'+
+                            '<span style="' +labelStyle+ '">心跳注释：</span>'+ item.heart_beat_remark +
+                            '<br>'+
+                        '</div>'+
+                    '</div>'
+                );
+            }
+            projectSpiderLay.innerHTML = htmlAll.join('')
+        }
+
         window.onload=function () {
             newSpaceCatch();
             refreshDate();
             dayToday();
+            requestHeartBeatBtn();
+
             setInterval(function () {
                 refreshDate();
-            }, 60*1000*2)
+            }, 60*1000*2);
             setInterval(function () {
                 searchSpaceCatch();
             }, 60*1000*5)
+
+            setInterval(function () {
+                if(currProjectHeartBeatIdentify){
+                    requestProjectHeartBeat(currProjectHeartBeatIdentify);
+                    requestProjectSpider(currProjectHeartBeatIdentify);
+                }
+            }, 60*1000*1)
         }
     </script>
 </head>
@@ -293,10 +408,27 @@
 <div id="timeSpace" style="display: flex;justify-content: center;align-items: center;margin-top:10px"></div>
 <div id="spaceLoading" style="display: flex;justify-content: center;align-items: center; height: 30px;color:grey"></div>
 <div id="spaceCatchMain" style="margin:0 auto;width: 600px;height:300px;"></div>
-<div style="display: flex;justify-content: center;align-items: center;margin:10px 0px 80px 0;">
+<div style="display: flex;justify-content: center;align-items: center;margin:10px 0px 40px 0;">
     开始时间：<input id="startTime" type='datetime-local'/>&nbsp;结束时间：<input id="endTime" type='datetime-local'/>
     <div class="btn" onclick="searchSpaceCatch()">搜索</div>
     <div class="btn" onclick="newSpaceCatch()">最新抓取</div>
+</div>
+
+<div style="height:1px;background:gray;margin-top:10px"></div>
+<div id="heartBeatBtnLay" style="flex-wrap:wrap; margin-top:10px;display: flex;flex-direction: row;justify-content: center;align-items: center">
+</div>
+
+<div style="margin:10px auto;width: 600px;border: 1px solid gray;border-radius: 4px;padding: 4px;">
+    <span style="width: 120px;display: inline-block;color:#363638;font-size:16px">更新时间：</span><span id="heartBeatUpdateTime"></span>
+    <br>
+    <span style="width: 120px;display: inline-block;color:#363638;font-size:16px">项目标识：</span><span id="projectIdentify"></span>
+    <br>
+    <span style="width: 120px;display: inline-block;color:#363638;font-size:16px">最新跳动时间：</span><span id="projectHeatBeat"></span>
+    <br>
+    <span style="width: 120px;display: inline-block;color:#363638;font-size:16px">跳动注释：</span><span id="projectHeatBeatRemark"></span>
+</div>
+
+<div id="projectSpiderLay" style="margin:10px auto;width: 600px;">
 </div>
 </body>
 </html>
