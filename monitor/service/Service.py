@@ -3,6 +3,7 @@
 import json
 
 import web
+
 from trivest_data.dal.DataMonitorDao import DayNumTotalDao, SpaceCatchTotalDao, SpiderMonitor
 
 urls = (
@@ -93,6 +94,7 @@ class ProjectHeatBeat:
             newResults.append({
                 'heart_beat_time': dateToString(result.heart_beat_time),
                 'heart_beat_remark': result.heart_beat_remark,
+                'heart_beat_time_space':  result.heart_beat_time_space
             })
         return json.dumps(newResults)
 
@@ -123,6 +125,7 @@ class ProjectSpider:
                 'table_name_zh': result.table_name_zh,
                 'project_identify': result.project_identify,
                 'item_type': result.item_type,
+                'heart_beat_time_space': result.heart_beat_time_space
             })
         return json.dumps(newResults)
 

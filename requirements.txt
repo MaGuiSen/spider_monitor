@@ -1,2 +1,4 @@
 peewee # pip install peewee
 web  #使用pip install web.py 安装
+smtplib #邮件
+apscheduler #定时器

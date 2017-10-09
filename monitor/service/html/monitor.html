@@ -345,8 +345,13 @@
             for(var index=0; index< dataList.length; index++){
                 var item = dataList[index];
                 var labelStyle = 'width: 120px;display: inline-block;color:#363638;font-size:16px';
+                var timeSpace = item.heart_beat_time_space;
+                var beatTime =item.heart_beat_time?new Date(item.heart_beat_time):new Date(); //心跳时间
+                var currTime =new Date(); //当前时间
+                var normalState = currTime - beatTime > (timeSpace*1000 + 2*60*1000) ?
+                    '<span style="color: red">（超时）</span>': '<span>（正常）</span>';
                 htmlAll.push(
-                    '<div style="width: 600px; margin-top: 10px">'+ (index+1) + '、' + item.spider_name_zh + '<br>'+
+                    '<div style="width: 600px; margin-top: 10px">'+ (index+1) + '、' + item.spider_name_zh + normalState + '<br>'+
                         '<div style="margin-top: 10px;border: 1px solid gray;border-radius: 4px;padding: 4px;">'+
                             '<span style="' +labelStyle+ '">爬虫名称：</span>'+ item.spider_name +
                             '<br>'+

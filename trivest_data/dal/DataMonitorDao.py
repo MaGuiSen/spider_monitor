@@ -161,139 +161,15 @@ class SpiderMonitor(object):
     def getProjectHeartBeat(self, projectIdentify):
         try:
             table = getTableByName('spider_monitor')
-            return table.select(table.heart_beat_time, table.heart_beat_remark).where(table.project_identify == projectIdentify
+            return table.select(table.heart_beat_time, table.heart_beat_time_space, table.heart_beat_remark).where(table.project_identify == projectIdentify
                                         , table.item_type == 'project')
         except Exception as e:
             print str(e)
         pass
 
-    def getHeartBeatTime(self, projectIdentify, itemType, spiderName=''):
+    def getHeartBeatTime(self):
         """
         得到心跳更新时间
         """
         table = getTableByName('spider_monitor')
-        return table.select().where(table.project_identify == projectIdentify,
-                                    table.spider_name == spiderName,
-                                    table.item_type == itemType)
-
-    def projectHeatBeat(self, projectIdentify, heartBeatRemark=''):
-        try:
-            results = self.getHeartBeatTime(projectIdentify, 'project')
-            nowDate = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            if len(results):
-                for result in results:
-                    result.heart_beat_time = nowDate
-                    result.heart_beat_remark = heartBeatRemark
-                    result.save()
-            else:
-                table = getTableByName('spider_monitor')
-                table.create(heart_beat_time=nowDate,
-                             heart_beat_remark=heartBeatRemark,
-                             project_identify=projectIdentify,
-                             item_type='project',
-                             spider_name='')
-        except Exception as e:
-            print str(e)
-
-    def spiderHeatBeat(self, projectIdentify, spiderName, spiderDetail, heartBeatRemark=''):
-        try:
-            # spiderDetail 包含了spider相关的说明，此对象和数据子字段对应
-            results = self.getHeartBeatTime(projectIdentify, 'spider', spiderName=spiderName)
-            nowDate = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            if len(results):
-                for result in results:
-                    result.heart_beat_time = nowDate
-                    result.heart_beat_remark = heartBeatRemark
-                    result.table_name = spiderDetail.get('table_name', '')
-                    result.spider_name = spiderDetail.get('spider_name', '')
-                    result.spider_name_zh = spiderDetail.get('spider_name_zh', '')
-                    result.table_name_zh = spiderDetail.get('table_name_zh', '')
-                    result.save()
-            else:
-                table = getTableByName('spider_monitor')
-                table.create(
-                    heart_beat_time=nowDate,
-                    heart_beat_remark=heartBeatRemark,
-                    project_identify=projectIdentify,
-                    item_type='spider',
-                    **spiderDetail)
-        except Exception as e:
-            print str(e)
-
-    def updateStartSpiderTime(self, projectIdentify, spiderName, spiderDetail):
-        try:
-            results = self.getHeartBeatTime(projectIdentify, 'spider', spiderName=spiderName)
-            nowDate = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            if len(results):
-                for result in results:
-                    result.start_spider_time = nowDate
-                    result.table_name = spiderDetail.get('table_name', '')
-                    result.spider_name = spiderDetail.get('spider_name', '')
-                    result.spider_name_zh = spiderDetail.get('spider_name_zh', '')
-                    result.table_name_zh = spiderDetail.get('table_name_zh', '')
-                    result.save()
-            else:
-                table = getTableByName('spider_monitor')
-                table.create(
-                    start_spider_time=nowDate,
-                    project_identify=projectIdentify,
-                    item_type='spider',
-                    **spiderDetail)
-            pass
-        except Exception as e:
-            print str(e)
-
-    def updateCloseSpiderTime(self, projectIdentify, spiderName, spiderDetail):
-        try:
-            results = self.getHeartBeatTime(projectIdentify, 'spider', spiderName=spiderName)
-            nowDate = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            if len(results):
-                for result in results:
-                    result.close_spider_time = nowDate
-                    result.table_name = spiderDetail.get('table_name', '')
-                    result.spider_name = spiderDetail.get('spider_name', '')
-                    result.spider_name_zh = spiderDetail.get('spider_name_zh', '')
-                    result.table_name_zh = spiderDetail.get('table_name_zh', '')
-                    result.save()
-            else:
-                table = getTableByName('spider_monitor')
-                table.create(
-                    close_spider_time=nowDate,
-                    project_identify=projectIdentify,
-                    item_type='spider',
-                    **spiderDetail)
-            pass
-        except Exception as e:
-            print str(e)
-
-if __name__ == '__main__':
-    SpiderMonitor().projectHeatBeat('11212', heartBeatRemark='10分钟跳一次')
-    SpiderMonitor().projectHeatBeat('21', heartBeatRemark='10分钟跳一次')
-    spiderDetail1 = {
-        'table_name': 'wangyi_detail',
-        'table_name_zh': '网易',
-        'spider_name': 'wangyi_tech_scroll_news',
-        'spider_name_zh': '网易-科技新闻'
-    }
-    SpiderMonitor().spiderHeatBeat('11212', 'wangyi_tech_scroll_news', spiderDetail1, heartBeatRemark='10分钟一次')
-
-    spiderDetail2 = {
-        'table_name': 'weixin_source',
-        'table_name_zh': '微信',
-        'spider_name': 'weixin_source',
-        'spider_name_zh': '微信-科技新闻'
-    }
-    SpiderMonitor().spiderHeatBeat('11212', 'weixin_source', spiderDetail2, heartBeatRemark='半小时一次')
-
-    spiderDetail3 = {
-        'table_name': 'weixin_source',
-        'table_name_zh': '微信',
-        'spider_name': 'weixin_source',
-        'spider_name_zh': '微信'
-    }
-    SpiderMonitor().spiderHeatBeat('22222', 'weixin_source', spiderDetail3, heartBeatRemark='半小时一次')
-
-    SpiderMonitor().updateCloseSpiderTime('22222', 'weixin_source', spiderDetail3)
-    SpiderMonitor().updateStartSpiderTime('22222', 'weixin_source', spiderDetail3)
-    SpiderMonitor().updateCloseSpiderTime('11212', 'weixin_source', spiderDetail3)
-    SpiderMonitor().updateCloseSpiderTime('wwwwwww', 'weixin_source', spiderDetail3)
+        return table.select()
