@@ -83,8 +83,13 @@ def heartBeat():
 
     if len(needSendTypes) and checkNeedSend():
         print '-------need send email---------'
+        types = []
+        for needSendType in needSendTypes:
+            timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh, beatTime = needSendType
+            types.append(timeSpace + ',' + beatTime + ',' + projectIdentify + ',' + spiderName + ',' + spiderNameZh + ',' + beatTime)
+            types.append('\n')
         randomStr = str(random.uniform(0, 1))
-        ret = mail(randomStr + ':' + ','.join(needSendTypes))
+        ret = mail(randomStr + ':' + ';'.join(types))
         for timeSpace, beatTime, currTimeStr, projectIdentify, spiderName, spiderNameZh, beatTime_long in needSendTypes:
             print timeSpace, beatTime, currTimeStr, projectIdentify, spiderName, spiderNameZh, beatTime_long
         if ret:
