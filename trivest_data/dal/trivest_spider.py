@@ -32,7 +32,7 @@ def getTableByName(tableName):
         'fenghuang_detail': FenghuangDetail,
         'hexun_detail': HexunDetail,
         'jiemian_detail': JiemianDetail,
-        'jingrongjie_detail': JingrongjieDetail,
+        'jinrongjie_detail': JinrongjieDetail,
         'kuaixun_detail': KuaixunDetail,
         'sina_detail': SinaDetail,
         'sohu_detail': SohuDetail,
@@ -47,7 +47,7 @@ def getTableByName(tableName):
         # 'fenghuang_detail': FenghuangDetailTest,
         # 'hexun_detail': HexunDetailTest,
         # 'jiemian_detail': JiemianDetailTest,
-        # 'jingrongjie_detail': JingrongjieDetailTest,
+        # 'jinrongjie_detail': JinrongjieDetailTest,
         # 'kuaixun_detail': KuaixunDetailTest,
         # 'sina_detail': SinaDetailTest,
         # 'sohu_detail': SohuDetailTest,
@@ -296,7 +296,7 @@ class JiemianDetail(BaseModel):
 
 
 # TODO...del
-class JingrongjieDetailTest(BaseModel):
+class JinrongjieDetailTest(BaseModel):
     content_html = TextField(null=True)
     content_txt = TextField(null=True)
     hash_code = CharField(null=True)
@@ -316,10 +316,10 @@ class JingrongjieDetailTest(BaseModel):
     wx_account = CharField(null=True)
 
     class Meta:
-        db_table = 'jingrongjie_detail_test'
+        db_table = 'jinrongjie_detail_test'
 
 
-class JingrongjieDetail(BaseModel):
+class JinrongjieDetail(BaseModel):
     content_html = TextField(null=True)
     content_txt = TextField(null=True)
     hash_code = CharField(null=True)
@@ -339,7 +339,7 @@ class JingrongjieDetail(BaseModel):
     wx_account = CharField(null=True)
 
     class Meta:
-        db_table = 'jingrongjie_detail'
+        db_table = 'jinrongjie_detail'
 
 
 # TODO...del
