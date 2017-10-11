@@ -348,7 +348,7 @@
                 var timeSpace = item.heart_beat_time_space;
                 var beatTime =item.heart_beat_time?new Date(item.heart_beat_time):new Date(); //心跳时间
                 var currTime =new Date(); //当前时间
-                var normalState = currTime - beatTime > (timeSpace*1000 + 2*60*1000) ?
+                var normalState = currTime - beatTime > (timeSpace*1000 + 4*60*1000) ?
                     '<span style="color: red">（超时）</span>': '<span>（正常）</span>';
                 htmlAll.push(
                     '<div style="width: 600px; margin-top: 10px">'+ (index+1) + '、' + item.spider_name_zh + normalState + '<br>'+

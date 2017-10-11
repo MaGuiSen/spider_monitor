@@ -37,7 +37,7 @@ def mail(info):
         print e
     return ret
 
-lastSendTime = int(time.time())
+lastSendTime = 0l
 
 
 def checkNeedSend():
@@ -56,7 +56,7 @@ def checkNeedSend():
 
 def outOfData(currTime, beatTime_long, timeSpace):
     spaceTime = currTime - beatTime_long
-    if spaceTime.seconds > (timeSpace + 2*60):
+    if spaceTime.seconds > (timeSpace + 4*60):
         return True
     else:
         return False
@@ -78,20 +78,28 @@ def heartBeat():
 
         print 'that: ', beatTime, timeSpace, spiderName
         if beatTime and outOfData(currTime, beatTime, timeSpace):
-            print 'outOfData--------', timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh, beatTime
-            needSendTypes.append((timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh, beatTime))
+            print 'outOfData--------', timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh
+            needSendTypes.append((timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh))
 
     if len(needSendTypes) and checkNeedSend():
         print '-------need send email---------'
         types = []
         for needSendType in needSendTypes:
-            timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh, beatTime = needSendType
-            types.append(timeSpace + ',' + beatTime + ',' + projectIdentify + ',' + spiderName + ',' + spiderNameZh + ',' + beatTime)
-            types.append('\n')
+            timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh = needSendType
+            sb = []
+            sb.append(str(timeSpace))
+            sb.append(str(beatTime))
+            if projectIdentify:
+                sb.append(projectIdentify)
+            if spiderName:
+                sb.append(spiderName)
+            if spiderNameZh:
+                sb.append(spiderNameZh)
+            types.append(u'， '.join(sb))
         randomStr = str(random.uniform(0, 1))
-        ret = mail(randomStr + ':' + ';'.join(types))
-        for timeSpace, beatTime, currTimeStr, projectIdentify, spiderName, spiderNameZh, beatTime_long in needSendTypes:
-            print timeSpace, beatTime, currTimeStr, projectIdentify, spiderName, spiderNameZh, beatTime_long
+        ret = mail(randomStr + ':\n' + '\n\n'.join(types))
+        for timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh in needSendTypes:
+            print timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh
         if ret:
             print 'send_success'
             global lastSendTime
@@ -108,5 +116,5 @@ def startMailMonitor():
 
 if __name__ == '__main__':
     startMailMonitor()
-
+    # heartBeat()
 
