@@ -883,3 +883,26 @@ class XueqiuDetail(BaseModel):
 
     class Meta:
         db_table = 'xueqiu_detail'
+
+
+# if __name__ == '__main__':
+#     Tables = {
+#         'diyicaijing_detail': DiyicaijingDetail,
+#         'fenghuang_detail': FenghuangDetail,
+#         'hexun_detail': HexunDetail,
+#         'jiemian_detail': JiemianDetail,
+#         'jingrongjie_detail': JingrongjieDetail,
+#         'kuaixun_detail': KuaixunDetail,
+#         'sina_detail': SinaDetail,
+#         'sohu_detail': SohuDetail,
+#         'taoguba_detail': TaogubaDetail,
+#         'tengxun_detail': TengxunDetail,
+#         'wangyi_detail': WangyiDetail,
+#         'weixin_detail': WeixinDetail,
+#         'weixin_source': WeixinSource,
+#         'xueqiu_detail': XueqiuDetail,
+#     }
+#     total = 0
+#     for table in Tables:
+#         total += Tables[table].select().count()
+#     print total
