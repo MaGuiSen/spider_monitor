@@ -56,7 +56,8 @@ def checkNeedSend():
 
 def outOfData(currTime, beatTime_long, timeSpace):
     spaceTime = currTime - beatTime_long
-    if spaceTime.seconds > (timeSpace + 4*60):
+    if spaceTime.seconds > 0 and spaceTime.seconds > (timeSpace + 4*60):
+        print spaceTime.seconds, timeSpace + 4*60
         return True
     else:
         return False
@@ -76,9 +77,9 @@ def heartBeat():
         spiderName = result.spider_name
         spiderNameZh = result.spider_name_zh
 
-        print 'that: ', beatTime, timeSpace, spiderName
+        print 'that: ', currTime.strftime('%Y-%m-%d %H:%M:%S'), beatTime, timeSpace, spiderName
         if beatTime and outOfData(currTime, beatTime, timeSpace):
-            print 'outOfData--------', timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh
+            print 'outOfData--------', currTime.strftime('%Y-%m-%d %H:%M:%S'), timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh
             needSendTypes.append((timeSpace, beatTime, projectIdentify, spiderName, spiderNameZh))
 
     if len(needSendTypes) and checkNeedSend():
@@ -117,4 +118,14 @@ def startMailMonitor():
 if __name__ == '__main__':
     startMailMonitor()
     # heartBeat()
-
+    # str = '2017-10-17 15:05:21'
+    # date = datetime.datetime.strptime(str, "%Y-%m-%d %H:%M:%S")
+    #
+    # nowstr = '2017-10-17 15:05:03'
+    # dateNow = datetime.datetime.strptime(str, "%Y-%m-%d %H:%M:%S")
+    #
+    # spaceTime = dateNow - date
+    # if spaceTime.seconds > (600 + 4 * 60):
+    #     print True
+    # else:
+    #     print False

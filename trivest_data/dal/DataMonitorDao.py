@@ -133,14 +133,6 @@ class DayNumTotalDao(object):
             return 0
 
 
-if __name__== '__main__':
-    table = getTableByName('spider_monitor')
-    results = table.select(fn.Distinct(table.table_name))
-    for ress in results:
-        print ress
-    pass
-
-
 class SpiderMonitor(object):
     def getAllProjectIdentify(self):
         try:
@@ -173,3 +165,14 @@ class SpiderMonitor(object):
         """
         table = getTableByName('spider_monitor')
         return table.select()
+
+if __name__== '__main__':
+    for tableName in tablesName:
+        table = getTableByName(tableName)
+        print tableName
+
+        dis_count = table.select(fn.Distinct(table.source_url)).count()
+        print dis_count
+        count = table.select().count()
+        print count
+        print tableName, count, dis_count
