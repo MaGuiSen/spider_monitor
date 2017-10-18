@@ -56,7 +56,7 @@ def checkNeedSend():
 
 def outOfData(currTime, beatTime_long, timeSpace):
     spaceTime = currTime - beatTime_long
-    if spaceTime.seconds > 0 and spaceTime.seconds > (timeSpace + 4*60):
+    if spaceTime.seconds > 0 and spaceTime.seconds > (2*timeSpace + 4*60):
         print spaceTime.seconds, timeSpace + 4*60
         return True
     else:
