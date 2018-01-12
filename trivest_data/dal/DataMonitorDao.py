@@ -20,7 +20,6 @@ tablesName = [
     'xueqiu_detail',
 ]
 
-
 class SpaceCatchTotalDao(object):
     def getAllTotal(self, startTime, endTime):
         result = []

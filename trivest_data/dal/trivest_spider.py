@@ -4,7 +4,7 @@
 # Date: September 25, 2017 09:29AM
 # Database: trivest_spider
 # Peewee version: 2.9.2
-
+import datetime
 from peewee import *
 from trivest_data.config.app import config
 from playhouse.shortcuts import RetryOperationalError
@@ -15,12 +15,13 @@ __mysql_config = config['mysql']
 class MyRetryDB(RetryOperationalError, MySQLDatabase):
     pass
 
-import codecs
-codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else None)
-
+# import codecs
+# codecs.register(lambda name: codecs.lookup('utf8') if name == 'utf8mb4' else None)
+# charset='utf8mb4',
 database = MyRetryDB(__mysql_config['database'],
                      **{'host': __mysql_config['host'], 'password': __mysql_config['password'],
                         'port': int(__mysql_config['port']), 'user': __mysql_config['user']})
+database.execute_sql("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;")
 
 
 # TODO...新增一个表的对象，就在此处添加一个键值对，指定数据库名称和类的对应关系(key为数据库名称)
@@ -65,9 +66,20 @@ class UnknownField(object):
     def __init__(self, *_, **__): pass
 
 
+def execute_sql(sql_str):
+    return database.execute_sql(sql_str)
+
 class BaseModel(Model):
     class Meta:
         database = database
+
+
+class AllStyles(BaseModel):
+    hash_code = CharField(null=True)
+    styles = TextField(null=True)
+
+    class Meta:
+        db_table = 'all_styles'
 
 
 # 爬虫监控类
@@ -885,24 +897,34 @@ class XueqiuDetail(BaseModel):
         db_table = 'xueqiu_detail'
 
 
-# if __name__ == '__main__':
-#     Tables = {
-#         'diyicaijing_detail': DiyicaijingDetail,
-#         'fenghuang_detail': FenghuangDetail,
-#         'hexun_detail': HexunDetail,
-#         'jiemian_detail': JiemianDetail,
-#         'jingrongjie_detail': JingrongjieDetail,
-#         'kuaixun_detail': KuaixunDetail,
-#         'sina_detail': SinaDetail,
-#         'sohu_detail': SohuDetail,
-#         'taoguba_detail': TaogubaDetail,
-#         'tengxun_detail': TengxunDetail,
-#         'wangyi_detail': WangyiDetail,
-#         'weixin_detail': WeixinDetail,
-#         'weixin_source': WeixinSource,
-#         'xueqiu_detail': XueqiuDetail,
-#     }
-#     total = 0
-#     for table in Tables:
-#         total += Tables[table].select().count()
-#     print total
+if __name__ == '__main__':
+    html = u"""
+    咖啡需要每天至少来一杯的
+速溶是在开玩笑，手冲门槛有点高
+「防弹咖啡」大概是最合适的解决方案了
+提神醒脑之外，还能适当抑制食欲有助减脂
+每日困如狗又想控制体重的胖友们
+不是讲笑，have a try👇👇
+"""
+    contentItem = {
+        'content_txt': '',
+        'title': '测试',
+        'source_url': '',
+        'post_date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'sub_channel': '',
+        'post_user': '',
+        'tags': '',
+        'styles': '',
+        'content_html': html,
+        'hash_code': '',
+        'info_type': 1,
+        'src_source': 1,
+        'src_account': 1,
+        'src_channel': '',
+        'src_ref': '',
+        'wx_account': '',
+        'update_time':datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+    WeixinDetailTest.create(**contentItem)
+    result = WeixinDetailTest.select().where(WeixinDetailTest.id>3861)[0]
+    print result.content_html

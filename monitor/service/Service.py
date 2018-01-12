@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 # pip install web.py 通过这个安装
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 import json
+import urllib
 
 import web
-
+import HTMLParser
 from trivest_data.dal.DataMonitorDao import DayNumTotalDao, SpaceCatchTotalDao, SpiderMonitor
+from trivest_data.dal.PageShowDao import getPageDetail
 
 urls = (
+    '/show/news', 'showNews',
     '/monitor/dayNum', 'dayNum',
     '/monitor/spaceCatchNum', 'spaceCatchNum',
     '/(html|js|css|images)/(.*)', 'static',
@@ -16,7 +23,6 @@ urls = (
 )
 app = web.application(urls, globals())
 
-
 def dateToString(date):
     if not date:
         return ''
@@ -25,6 +31,18 @@ def dateToString(date):
     except Exception as e:
         print str(e)
         return ''
+
+render = web.template.render('./html/', globals={})
+
+
+class showNews:
+    def GET(self):
+        web.header("Access-Control-Allow-Origin", "*")
+        params = web.input()
+        news_id = params.news_id
+        tableName = params.table_name
+        title, content_html, styles= getPageDetail(tableName, news_id)
+        return render.news_page(title, content_html , styles)
 
 
 class dayNum:
