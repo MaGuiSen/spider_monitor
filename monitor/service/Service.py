@@ -11,7 +11,7 @@ import web
 import HTMLParser
 from trivest_data.dal.DataMonitorDao import DayNumTotalDao, SpaceCatchTotalDao, SpiderMonitor
 from trivest_data.dal.PageShowDao import getPageDetail
-
+# http://localhost:8080/show/news?news_id=117&table_name=tengxun_detail
 urls = (
     '/show/news', 'showNews',
     '/monitor/dayNum', 'dayNum',
