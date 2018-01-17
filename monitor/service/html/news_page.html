@@ -1,14 +1,27 @@
-$def with (title, content_html, styles)
+$def with (post_user, src_ref, tags, post_date, source_url, title, content_html, styles)
 <!DOCTYPE html>
 <html lang="en">
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>$title,</title>
+    <title>$title</title>
     <style>
         $styles
     </style>
 </head>
 <body>
+<div style="font-size:12pt;background:#f2f2f2;padding:10px">
+    原网页网址：<a href="$source_url" target="_blank">$title</a>
+    <br>
+    作者：$post_user
+    <br>
+    来源：$src_ref
+    <br>
+    发布时间：$post_date
+    <br>
+    标签：$tags
+
+</div>
+
 <div id="content">
 $:content_html
 </div>

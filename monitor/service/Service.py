@@ -10,8 +10,8 @@ import urllib
 import web
 import HTMLParser
 from trivest_data.dal.DataMonitorDao import DayNumTotalDao, SpaceCatchTotalDao, SpiderMonitor
-from trivest_data.dal.PageShowDao import getPageDetail
-# http://localhost:8080/show/news?news_id=117&table_name=tengxun_detail
+from trivest_data.dal.PageShowDao import getPageDetail, getLastPageDetail
+# http://localhost:8080/show/news?news_id=1208&table_name=tengxun_detail
 urls = (
     '/show/news', 'showNews',
     '/monitor/dayNum', 'dayNum',
@@ -39,10 +39,18 @@ class showNews:
     def GET(self):
         web.header("Access-Control-Allow-Origin", "*")
         params = web.input()
-        news_id = params.news_id
-        tableName = params.table_name
-        title, content_html, styles= getPageDetail(tableName, news_id)
-        return render.news_page(title, content_html , styles)
+        news_id = params.get(u'news_id', u'')
+        table_name = params.get(u'table_name', u'')
+        if news_id:
+            a = getPageDetail(table_name, news_id)
+        else:
+            a = getLastPageDetail(table_name)
+        if a:
+            post_user, src_ref, tags, post_date, source_url, title, content_html, styles = a
+
+            return render.news_page(post_user, src_ref, tags, post_date, source_url, title, content_html, styles)
+        else:
+            return render.none_page()
 
 
 class dayNum:
